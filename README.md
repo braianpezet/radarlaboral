@@ -1,13 +1,14 @@
 # Radar Laboral
 
 Aplicación de escritorio local que reúne avisos de empleo de varios portales,
-los ordena según el perfil de Braian y permite marcarlos. **No postula
+los ordena según el perfil configurado y permite marcarlos. **No postula
 automáticamente ni envía el CV a ningún sitio.**
 
 El plan completo está en [`PLAN.md`](PLAN.md).
 
 ## Estado actual — Fase 1 + Fase A + Fase C + aprendizaje (etapa 1) + configuración + Empresas (ATS) + Jooble
-- Backend FastAPI + SQLite con búsqueda de texto completo (FTS5).- Conectores de **Computrabajo AR**, **BuscoJobs AR**, **ZonaJobs AR**,
+- Backend FastAPI + SQLite con búsqueda de texto completo (FTS5).
+- Conectores de **Computrabajo AR**, **BuscoJobs AR**, **ZonaJobs AR**,
   **Bumeran AR**, **GetOnBoard**, **Empleos IT**, **Empresas (ATS)**,
   **Jooble** (requiere clave del dominio argentino), **Remotive**,
   **RemoteOK**, **Himalayas** y **Jobicy**.
@@ -233,7 +234,9 @@ clasificador local.
 ## Puesta en marcha
 
 ```powershell
-cd D:\04_Proyectos\radar-laboral
+git clone https://github.com/braianpezet/radarlaboral.git
+cd radarlaboral
+
 pip install -r requirements.txt
 
 cd frontend
@@ -332,9 +335,24 @@ radar-laboral/
 - Los avisos con más de 30 días se purgan automáticamente, salvo que estén
   guardados, postulados, valorados o tengan nota.
 
+## Aviso legal y uso responsable
+
+Este es un proyecto personal, sin fines comerciales y sin relación con los
+portales que consulta. Los conectores solo leen información pública, con
+pausas y bajo volumen; no automatizan postulaciones, no envían el CV y no
+resuelven captchas ni eluden autenticaciones.
+
+Cada portal tiene sus propios términos de uso. La app permite apagar cualquier
+fuente y así debe quedar si el sitio no permite la consulta automatizada. El
+uso de cada conector es responsabilidad de quien ejecuta la aplicación.
+
 ## Próximas fases
 
 1. Notificaciones internas y actualización programable en horas.
 2. Clave de Careerjet (cuenta de publisher; devuelve extractos cortos). Jooble ya está integrado.
 3. Exportación a CSV y tablero de postulaciones.
 4. Aprendizaje etapa 2: afinidad suavizada sobre el feedback recolectado.
+
+## Licencia
+
+[MIT](LICENSE) © 2026 Braian Pezet

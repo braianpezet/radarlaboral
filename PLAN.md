@@ -1,14 +1,14 @@
 # Radar Laboral — Plan de proyecto
 
 Aplicación de escritorio, 100 % local, que reúne avisos de empleo de varios portales,
-los puntúa contra el perfil de Braian Pezet y muestra una lista ordenada por
+los puntúa contra el perfil configurado y muestra una lista ordenada por
 compatibilidad.
 
 **No postula, no envía el CV, no inicia sesión en ningún portal.**
 
 - Estado: **Fase C + aprendizaje etapa 1 + panel de fuentes + LinkedIn opcional + limpieza + registro + Empresas (ATS) + Jooble** (2026-11-10)
 - Fecha: 2026-11-04
-- Ubicación del código: `D:\04_Proyectos\radar-laboral`
+- Ubicación del código: raíz del repositorio
 
 ---
 
@@ -32,7 +32,7 @@ compatibilidad.
 
 ## 2. Perfiles de búsqueda
 
-Derivados de los CV en `C:\Users\braianpezet\Dropbox\Trabajo\Curriculums`.
+Derivados de los CV del autor, fuera del repositorio.
 
 | Perfil | Roles objetivo | Skills núcleo | Descarta si… |
 |---|---|---|---|
