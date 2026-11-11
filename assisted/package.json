@@ -1,0 +1,9 @@
+﻿{
+  "name": "radar-laboral-assisted",
+  "private": true,
+  "type": "module",
+  "description": "Sesion asistida para portales con Cloudflare (ZonaJobs/Bumeran)",
+  "dependencies": {
+    "playwright-core": "^1.65.0"
+  }
+}

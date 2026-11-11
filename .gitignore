@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+data/
+*.log
+.env
+.env.*
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+assisted/node_modules/

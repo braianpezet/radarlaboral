@@ -1,0 +1,147 @@
+import type {
+  FeedbackResumen,
+  FeedbackVoto,
+  Job,
+  JobDetail,
+  JobStatus,
+  LimpiezaPreview,
+  LimpiezaResultado,
+  Profile,
+  Run,
+  RunLog,
+  SesionAsistida,
+  SesionesResumen,
+  Source,
+  Stats,
+} from './types'
+
+async function pedir<T>(url: string, init?: RequestInit): Promise<T> {
+  const respuesta = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...init,
+  })
+  if (!respuesta.ok) {
+    let detalle = `HTTP ${respuesta.status}`
+    try {
+      const cuerpo = await respuesta.json()
+      detalle = cuerpo.detail ?? detalle
+    } catch {
+      /* sin cuerpo */
+    }
+    throw new Error(detalle)
+  }
+  return respuesta.json() as Promise<T>
+}
+
+export interface FiltrosJobs {
+  q?: string
+  source?: string
+  status?: string
+  view?: string
+  profile?: string
+  modality?: string
+  seniority?: string
+  language?: string
+  minScore?: number
+  sort?: 'score' | 'date'
+  order?: 'asc' | 'desc'
+  limit?: number
+  offset?: number
+}
+
+export function listarJobs(filtros: FiltrosJobs) {
+  const qs = new URLSearchParams()
+  if (filtros.q) qs.set('q', filtros.q)
+  if (filtros.source) qs.set('source', filtros.source)
+  if (filtros.status) qs.set('status', filtros.status)
+  if (filtros.view) qs.set('view', filtros.view)
+  if (filtros.profile) qs.set('profile', filtros.profile)
+  if (filtros.modality) qs.set('modality', filtros.modality)
+  if (filtros.seniority) qs.set('seniority', filtros.seniority)
+  if (filtros.language) qs.set('language', filtros.language)
+  if (filtros.minScore != null) qs.set('min_score', String(filtros.minScore))
+  qs.set('sort', filtros.sort ?? 'score')
+  qs.set('order', filtros.order ?? 'desc')
+  qs.set('limit', String(filtros.limit ?? 1000))
+  qs.set('offset', String(filtros.offset ?? 0))
+  return pedir<{ total: number; items: Job[] }>(`/api/jobs?${qs.toString()}`)
+}
+
+export function obtenerJob(id: number) {
+  return pedir<JobDetail>(`/api/jobs/${id}`)
+}
+
+export function actualizarJob(id: number, cambios: { status?: JobStatus; note?: string }) {
+  return pedir<{ id: number; status: JobStatus; note: string | null }>(`/api/jobs/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(cambios),
+  })
+}
+
+export function obtenerStats() {
+  return pedir<Stats>('/api/stats')
+}
+
+export function obtenerFuentes() {
+  return pedir<Source[]>('/api/sources')
+}
+
+export function obtenerPerfiles() {
+  return pedir<Profile[]>('/api/profiles')
+}
+
+export function ultimaCorrida() {
+  return pedir<Run | null>('/api/runs/latest')
+}
+
+export function actualizarAhora() {
+  return pedir<{ run_id: number }>('/api/refresh', { method: 'POST' })
+}
+
+export function obtenerRun(id: number) {
+  return pedir<Run>(`/api/runs/${id}`)
+}
+
+export function obtenerLogs(limit = 150) {
+  return pedir<RunLog[]>(`/api/logs?limit=${limit}`)
+}
+
+export function obtenerSesiones() {
+  return pedir<SesionesResumen>('/api/session')
+}
+
+export function abrirSesion(sourceId: string) {
+  return pedir<SesionAsistida>(`/api/session/${sourceId}`, { method: 'POST' })
+}
+
+export function registrarFeedback(jobId: number, vote: 1 | -1, motivos: string[] = []) {
+  return pedir<FeedbackVoto>('/api/feedback', {
+    method: 'POST',
+    body: JSON.stringify({ job_id: jobId, vote, motivos }),
+  })
+}
+
+export function borrarFeedback(jobId: number) {
+  return pedir<{ eliminados: number }>(`/api/feedback/${jobId}`, { method: 'DELETE' })
+}
+
+export function obtenerFeedbackResumen() {
+  return pedir<FeedbackResumen>('/api/feedback/summary')
+}
+
+export function actualizarFuente(sourceId: string, enabled: boolean) {
+  return pedir<Source>(`/api/sources/${sourceId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ enabled }),
+  })
+}
+
+export function obtenerLimpiezaPreview() {
+  return pedir<LimpiezaPreview>('/api/cleanup/preview')
+}
+
+export function limpiarAvisos() {
+  return pedir<LimpiezaResultado>('/api/cleanup', { method: 'POST' })
+}
+
+export type { JobStatus } from './types'
