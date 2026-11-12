@@ -556,7 +556,22 @@ def _nombre_docx(empresa: str | None, puesto: str | None) -> str:
     return f"cv-{base or 'adaptado'}.docx"
 
 
-def generar_word(adaptacion_id: int) -> tuple[bytes, str]:
+def _nombre_archivo(
+    nombre: str | None,
+    empresa: str | None,
+    puesto: str | None,
+) -> str:
+    """Nombre elegido por la persona, sin caracteres que rompan la descarga."""
+    base = (nombre or "").strip()
+    if base.lower().endswith(".docx"):
+        base = base[:-5]
+    base = re.sub(r'[\\/:*?"<>|\x00-\x1f]+', " ", base)
+    base = re.sub(r"\s+", " ", base).strip(" .")
+    base = base[:100].strip()
+    return f"{base}.docx" if base else _nombre_docx(empresa, puesto)
+
+
+def generar_word(adaptacion_id: int, nombre: str | None = None) -> tuple[bytes, str]:
     """Genera el .docx adaptado usando la plantilla guardada, si existe."""
     with conexion() as conn:
         fila = conn.execute(
@@ -581,4 +596,4 @@ def generar_word(adaptacion_id: int) -> tuple[bytes, str]:
         )
     except cv_docx.PlantillaError as exc:
         raise CvError(f"No se pudo usar la plantilla Word: {exc}") from exc
-    return contenido, _nombre_docx(fila["company_name"], fila["title"])
+    return contenido, _nombre_archivo(nombre, fila["company_name"], fila["title"])

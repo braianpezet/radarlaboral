@@ -1787,6 +1787,19 @@ function EditorNota({ job, onGuardar }: { job: Job | JobDetail; onGuardar: (nota
   )
 }
 
+function nombreWordSugerido(job: Job | JobDetail): string {
+  const base =
+    [job.company_name, job.title].filter(Boolean).join(' ') || job.source_name || 'aviso'
+  const slug = base
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80)
+  return `cv-${slug || 'adaptado'}`
+}
+
 function AsistenteCv({
   job,
   onAbrirCv,
@@ -1804,6 +1817,7 @@ function AsistenteCv({
   const [mostrarTexto, setMostrarTexto] = useState(false)
   const [copiado, setCopiado] = useState(false)
   const [descargandoWord, setDescargandoWord] = useState(false)
+  const [nombreArchivo, setNombreArchivo] = useState(() => nombreWordSugerido(job))
 
   useEffect(() => {
     let activo = true
@@ -1823,6 +1837,12 @@ function AsistenteCv({
       activo = false
     }
   }, [job.id, cvRevision])
+
+  useEffect(() => {
+    setNombreArchivo(nombreWordSugerido(job))
+    // Solo al cambiar de aviso: no pisar lo que escribió la persona.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job.id])
 
   const tieneCv = Boolean(estado?.cv?.contenido?.trim())
 
@@ -1889,7 +1909,7 @@ function AsistenteCv({
     setDescargandoWord(true)
     setError(null)
     try {
-      const { blob, nombre } = await api.descargarCvWord(actual.id)
+      const { blob, nombre } = await api.descargarCvWord(actual.id, nombreArchivo)
       const url = URL.createObjectURL(blob)
       const enlace = document.createElement('a')
       enlace.href = url
@@ -1903,7 +1923,8 @@ function AsistenteCv({
     }
   }
 
-  async function borrar() {    if (!actual) return
+  async function borrar() {
+    if (!actual) return
     try {
       await api.borrarAdaptacionCv(actual.id)
       const resto = versiones.filter((v) => v.id !== actual.id)
@@ -1935,6 +1956,25 @@ function AsistenteCv({
             ? 'Primero guardá tu CV base en Mi CV.'
             : 'Reordena y reformula tu CV para este aviso. No inventa experiencia: solo trabaja con lo que ya está en tu CV.'}
       </p>
+
+      {actual && (
+        <div className="asistente-cv-nombre">
+          <label htmlFor="cv-nombre-word">Nombre del archivo Word</label>
+          <div className="asistente-cv-nombre-campo">
+            <input
+              id="cv-nombre-word"
+              type="text"
+              value={nombreArchivo}
+              maxLength={90}
+              onChange={(evento) =>
+                setNombreArchivo(evento.target.value.replace(/\.docx$/i, ''))
+              }
+              placeholder="cv-empresa-puesto"
+            />
+            <span>.docx</span>
+          </div>
+        </div>
+      )}
 
       <div className="asistente-cv-acciones">
         <button className="btn" onClick={generar} disabled={generando}>

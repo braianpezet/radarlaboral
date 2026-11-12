@@ -346,7 +346,8 @@ El `.docx` que importás queda guardado como **plantilla**: la copia adaptada
 conserva tu página, márgenes, cabecera (nombre y contacto), fuente y tamaños, y
 vuelca el contenido nuevo respetando el diseño. Si no importás ninguna plantilla,
 la app genera un Word limpio con el mismo contenido. La generación del Word es
-local y no consume la API.
+local y no consume la API. Antes de descargarlo podés cambiar el nombre del
+archivo en el mismo bloque del asistente.
 
 Qué hace y qué no:
 

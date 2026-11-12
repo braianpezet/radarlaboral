@@ -186,16 +186,26 @@ export async function importarCvWord(archivo: File) {
   return respuesta.json() as Promise<CvImportado>
 }
 
-export async function descargarCvWord(adaptacionId: number) {
-  const respuesta = await fetch(`/api/cv/adaptaciones/${adaptacionId}/docx`)
+export async function descargarCvWord(adaptacionId: number, nombre = '') {
+  const limpio = nombre.trim()
+  const consulta = limpio ? `?nombre=${encodeURIComponent(limpio)}` : ''
+  const respuesta = await fetch(`/api/cv/adaptaciones/${adaptacionId}/docx${consulta}`)
   if (!respuesta.ok) throw new Error(await detalleError(respuesta))
   const blob = await respuesta.blob()
   const disposicion = respuesta.headers.get('Content-Disposition') ?? ''
-  const coincidencia = /filename="?([^";]+)"?/i.exec(disposicion)
-  return {
-    blob,
-    nombre: coincidencia?.[1] ?? `cv-adaptado-${adaptacionId}.docx`,
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(disposicion)
+  const ascii = /filename="?([^";]+)"?/i.exec(disposicion)
+  let nombreArchivo = `cv-adaptado-${adaptacionId}.docx`
+  if (utf8) {
+    try {
+      nombreArchivo = decodeURIComponent(utf8[1])
+    } catch {
+      /* deja el nombre alternativo */
+    }
+  } else if (ascii) {
+    nombreArchivo = ascii[1]
   }
+  return { blob, nombre: nombreArchivo }
 }
 
 export function adaptarCv(jobId: number, profileId = '') {

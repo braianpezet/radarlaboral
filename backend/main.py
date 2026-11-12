@@ -6,6 +6,7 @@ import asyncio
 import re
 import sqlite3
 from contextlib import asynccontextmanager
+from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -471,19 +472,27 @@ async def importar_plantilla_cv(request: Request, nombre: str = ""):
 
 
 @app.get("/api/cv/adaptaciones/{adaptacion_id}/docx")
-def descargar_cv_word(adaptacion_id: int):
+def descargar_cv_word(adaptacion_id: int, nombre: str = ""):
     """Genera el Word adaptado con la plantilla cargada (o una limpia)."""
     try:
-        contenido, nombre = cv.generar_word(adaptacion_id)
+        contenido, nombre_archivo = cv.generar_word(adaptacion_id, nombre or None)
     except cv.CvError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    ascii_nombre = (
+        nombre_archivo.encode("ascii", "ignore").decode().strip() or "cv-adaptado.docx"
+    )
     return Response(
         content=contenido,
         media_type=(
             "application/vnd.openxmlformats-officedocument."
             "wordprocessingml.document"
         ),
-        headers={"Content-Disposition": f'attachment; filename="{nombre}"'},
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{ascii_nombre}"; '
+                f"filename*=UTF-8''{quote(nombre_archivo)}"
+            )
+        },
     )
 
 
