@@ -6,7 +6,7 @@ automáticamente ni envía el CV a ningún sitio.**
 
 El plan completo está en [`PLAN.md`](PLAN.md).
 
-## Estado actual — Fase 1 + Fase A + Fase C + aprendizaje (etapa 1) + configuración + Empresas (ATS) + Jooble + asistente de CV
+## Estado actual — Fase 1 + Fase A + Fase C + aprendizaje (etapa 1) + configuración + Empresas (ATS) + Jooble + asistente de CV con Word
 - Backend FastAPI + SQLite con búsqueda de texto completo (FTS5).
 - Conectores de **Computrabajo AR**, **BuscoJobs AR**, **ZonaJobs AR**,
   **Bumeran AR**, **GetOnBoard**, **Empleos IT**, **Empresas (ATS)**,
