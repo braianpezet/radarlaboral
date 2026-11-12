@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -21,6 +22,7 @@ from .services import ingest
 from .services.dedupe import deduplicar
 from .services.scoring import puntuar_todos, puntuar_uno
 from .services import cv, feedback, limpieza, logs, sesiones
+from .services import guardar as guardar_archivo
 from .services.text import (
     detectar_idioma,
     detectar_modalidad,
@@ -29,7 +31,7 @@ from .services.text import (
     limpiar_descripcion,
 )
 
-VERSION = "0.16.0"
+VERSION = "0.17.0"
 _tarea_actual: asyncio.Task | None = None
 
 
@@ -523,6 +525,26 @@ def borrar_adaptacion_cv(adaptacion_id: int):
     if not cv.borrar_adaptacion(adaptacion_id):
         raise HTTPException(status_code=404, detail="Adaptación no encontrada")
     return {"eliminados": 1}
+
+
+@app.post("/api/guardar-como")
+async def guardar_como_archivo(
+    request: Request,
+    nombre: str = "",
+    extension: str = "docx",
+):
+    """Abre el diálogo de Windows y guarda el archivo en la ubicación elegida."""
+    contenido = await request.body()
+    if not contenido:
+        raise HTTPException(status_code=400, detail="El archivo está vacío.")
+    if len(contenido) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="El archivo es demasiado grande.")
+    try:
+        return await run_in_threadpool(
+            guardar_archivo.guardar_como, nombre, contenido, extension
+        )
+    except guardar_archivo.GuardarError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.get("/api/cleanup/preview")

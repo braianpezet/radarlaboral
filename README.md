@@ -317,6 +317,7 @@ radar-laboral/
 │       ├── dedupe.py        # agrupación de duplicados entre portales
 │       ├── cv.py            # asistente de CV con la Gemini API
 │       ├── cv_docx.py       # importación y generación de CV en Word
+│       ├── guardar.py       # diálogo "Guardar como" de Windows
 │       ├── limpieza.py      # retención de 30 días y purga de avisos
 │       ├── logs.py          # registro de eventos de los escaneos
 │       ├── sesiones.py      # estado y apertura de la sesión asistida
@@ -348,6 +349,13 @@ vuelca el contenido nuevo respetando el diseño. Si no importás ninguna plantil
 la app genera un Word limpio con el mismo contenido. La generación del Word es
 local y no consume la API. Antes de descargarlo podés cambiar el nombre del
 archivo en el mismo bloque del asistente.
+
+Al guardar la copia, tanto en Word como en `.md`, se abre la ventana
+**Guardar como** de Windows para elegir la carpeta y, si hace falta, el nombre
+final. La app escribe el archivo directamente en la ruta elegida, sin pasar por
+la carpeta de descargas. Si esa ventana no está disponible (por ejemplo, si
+abrís la interfaz en un navegador normal), se usa el selector del navegador y,
+como último recurso, la descarga habitual.
 
 Qué hace y qué no:
 

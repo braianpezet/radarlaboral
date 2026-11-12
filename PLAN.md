@@ -235,6 +235,11 @@ Estados manuales: `nuevo`, `visto`, `guardado`, `descartado`, `postulado`.
 
 Barra de estado: última actualización, próxima, errores por fuente.
 
+Al guardar la copia adaptada (Word o `.md`) se abre la ventana **Guardar como**
+de Windows para elegir carpeta y nombre; el endpoint `/api/guardar-como` escribe
+el archivo en esa ruta. Si no está disponible (navegador normal), se usa el
+selector del navegador o la descarga directa.
+
 ---
 
 ## 9. Actualización

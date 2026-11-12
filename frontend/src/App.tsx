@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, ReactNode } from 'react'
 import * as api from './api'
+import { guardarComo, nombreSeguro } from './guardar'
 import './styles.css'
 import type { CvAdaptacion, CvEstado, FeedbackResumen, Job, JobDetail, JobStatus, LimpiezaPreview, LimpiezaResultado, Profile, Run, RunLog, ScoreDetail, SesionAsistida, Source, Stats } from './types'
 
@@ -1887,7 +1888,7 @@ function AsistenteCv({
     }
   }
 
-  function descargar() {
+  async function descargar() {
     if (!actual) return
     const base = (job.company_name || job.source_name || 'aviso')
       .toLowerCase()
@@ -1895,13 +1896,17 @@ function AsistenteCv({
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
-    const blob = new Blob([actual.cv], { type: 'text/markdown;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const enlace = document.createElement('a')
-    enlace.href = url
-    enlace.download = `cv-${base || 'aviso'}.md`
-    enlace.click()
-    URL.revokeObjectURL(url)
+    try {
+      await guardarComo(
+        `cv-${base || 'aviso'}.md`,
+        'text/markdown',
+        'md',
+        'Documento Markdown',
+        async () => new Blob([actual.cv], { type: 'text/markdown;charset=utf-8' }),
+      )
+    } catch (e) {
+      setError((e as Error).message || 'No se pudo guardar el archivo.')
+    }
   }
 
   async function descargarWord() {
@@ -1909,15 +1914,16 @@ function AsistenteCv({
     setDescargandoWord(true)
     setError(null)
     try {
-      const { blob, nombre } = await api.descargarCvWord(actual.id, nombreArchivo)
-      const url = URL.createObjectURL(blob)
-      const enlace = document.createElement('a')
-      enlace.href = url
-      enlace.download = nombre
-      enlace.click()
-      URL.revokeObjectURL(url)
+      const nombre = nombreSeguro(nombreArchivo, nombreWordSugerido(job))
+      await guardarComo(
+        `${nombre}.docx`,
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'docx',
+        'Documento de Word',
+        async () => (await api.descargarCvWord(actual.id, nombreArchivo)).blob,
+      )
     } catch (e) {
-      setError((e as Error).message)
+      setError((e as Error).message || 'No se pudo guardar el Word.')
     } finally {
       setDescargandoWord(false)
     }
