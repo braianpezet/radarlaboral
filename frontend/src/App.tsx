@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { ChangeEvent, ReactNode } from 'react'
 import * as api from './api'
 import './styles.css'
-import type { FeedbackResumen, Job, JobDetail, JobStatus, LimpiezaPreview, LimpiezaResultado, Profile, Run, RunLog, ScoreDetail, SesionAsistida, Source, Stats } from './types'
+import type { CvAdaptacion, CvEstado, FeedbackResumen, Job, JobDetail, JobStatus, LimpiezaPreview, LimpiezaResultado, Profile, Run, RunLog, ScoreDetail, SesionAsistida, Source, Stats } from './types'
 
 const TABS = [
   { valor: '', etiqueta: 'Todas' },
@@ -195,86 +195,88 @@ function Configuracion({
           seguir filtrando.
         </p>
 
-        <ul className="config-fuentes">
-          {fuentes.map((f) => (
-            <li key={f.id} className={f.enabled ? 'config-fuente' : 'config-fuente inactiva'}>
-              <div className="config-fuente-info">
-                <div className="config-fuente-titulo">
-                  <strong>{f.name}</strong>
-                  <Chip tono={f.enabled ? 'verde' : 'neutro'}>
-                    {f.enabled ? 'Activa' : 'Inactiva'}
-                  </Chip>
-                  <Chip tono="azul">{f.type}</Chip>
-                  {f.reliability && (
-                    <Chip tono={TONO_CONFIABILIDAD[f.reliability] ?? 'neutro'}>
-                      {f.reliability}
+        <div className="config-scroll">
+          <ul className="config-fuentes">
+            {fuentes.map((f) => (
+              <li key={f.id} className={f.enabled ? 'config-fuente' : 'config-fuente inactiva'}>
+                <div className="config-fuente-info">
+                  <div className="config-fuente-titulo">
+                    <strong>{f.name}</strong>
+                    <Chip tono={f.enabled ? 'verde' : 'neutro'}>
+                      {f.enabled ? 'Activa' : 'Inactiva'}
                     </Chip>
-                  )}
-                  {Boolean(f.requires_key) && <Chip tono="ambar">Requiere clave</Chip>}
-                </div>
-                <span className="config-fuente-meta">
-                  {f.visible_count} visibles · {f.job_count} en base ·{' '}
-                  {f.last_run_at
-                    ? `última corrida ${fechaRelativa(f.last_run_at)}`
-                    : 'sin corridas'}
-                </span>
-                {f.id === 'linkedin' && (
-                  <span className="config-fuente-aviso">
-                    Apagada por defecto: sus términos de uso prohíben la recolección
-                    automatizada y el sitio puede limitar la IP (HTTP 429). Se consulta
-                    sin login y con bajo volumen.
+                    <Chip tono="azul">{f.type}</Chip>
+                    {f.reliability && (
+                      <Chip tono={TONO_CONFIABILIDAD[f.reliability] ?? 'neutro'}>
+                        {f.reliability}
+                      </Chip>
+                    )}
+                    {Boolean(f.requires_key) && <Chip tono="ambar">Requiere clave</Chip>}
+                  </div>
+                  <span className="config-fuente-meta">
+                    {f.visible_count} visibles · {f.job_count} en base ·{' '}
+                    {f.last_run_at
+                      ? `última corrida ${fechaRelativa(f.last_run_at)}`
+                      : 'sin corridas'}
                   </span>
-                )}
-                {f.last_error && <span className="config-fuente-error">{f.last_error}</span>}
-              </div>
-              <button
-                role="switch"
-                aria-checked={Boolean(f.enabled)}
-                aria-label={`${f.enabled ? 'Desactivar' : 'Activar'} ${f.name}`}
-                className={f.enabled ? 'switch activo' : 'switch'}
-                disabled={refrescando}
-                title={
-                  refrescando
-                    ? 'Esperá a que termine la actualización en curso'
-                    : f.enabled
-                      ? 'Desactivar para las próximas actualizaciones'
-                      : 'Volver a consultar esta fuente'
-                }
-                onClick={() => onCambiar(f.id, !f.enabled)}
-              >
-                <span />
-              </button>
-            </li>
-          ))}
-        </ul>
+                  {f.id === 'linkedin' && (
+                    <span className="config-fuente-aviso">
+                      Apagada por defecto: sus términos de uso prohíben la recolección
+                      automatizada y el sitio puede limitar la IP (HTTP 429). Se consulta
+                      sin login y con bajo volumen.
+                    </span>
+                  )}
+                  {f.last_error && <span className="config-fuente-error">{f.last_error}</span>}
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={Boolean(f.enabled)}
+                  aria-label={`${f.enabled ? 'Desactivar' : 'Activar'} ${f.name}`}
+                  className={f.enabled ? 'switch activo' : 'switch'}
+                  disabled={refrescando}
+                  title={
+                    refrescando
+                      ? 'Esperá a que termine la actualización en curso'
+                      : f.enabled
+                        ? 'Desactivar para las próximas actualizaciones'
+                        : 'Volver a consultar esta fuente'
+                  }
+                  onClick={() => onCambiar(f.id, !f.enabled)}
+                >
+                  <span />
+                </button>
+              </li>
+            ))}
+          </ul>
 
-        <div className="config-mantenimiento">
-          <div className="config-mantenimiento-texto">
-            <strong>Mantenimiento</strong>
-            <span>
-              {preview
-                ? `${preview.eliminables} de ${preview.viejos} avisos con más de ${preview.dias} días se pueden eliminar. Se conservan guardados, postulados, valorados y con nota.`
-                : 'Calculando avisos antiguos…'}
-            </span>
-            {resultado && (
-              <span className="config-mantenimiento-ok">
-                Se eliminaron {resultado.eliminados} avisos; quedan {resultado.restantes} en base.
+          <div className="config-mantenimiento">
+            <div className="config-mantenimiento-texto">
+              <strong>Mantenimiento</strong>
+              <span>
+                {preview
+                  ? `${preview.eliminables} de ${preview.viejos} avisos con más de ${preview.dias} días se pueden eliminar. Se conservan guardados, postulados, valorados y con nota.`
+                  : 'Calculando avisos antiguos…'}
               </span>
-            )}
-            {errorLimpieza && <span className="config-fuente-error">{errorLimpieza}</span>}
+              {resultado && (
+                <span className="config-mantenimiento-ok">
+                  Se eliminaron {resultado.eliminados} avisos; quedan {resultado.restantes} en base.
+                </span>
+              )}
+              {errorLimpieza && <span className="config-fuente-error">{errorLimpieza}</span>}
+            </div>
+            <button
+              className="btn"
+              onClick={limpiar}
+              disabled={!preview || preview.eliminables === 0 || limpiando}
+              title={
+                preview && preview.eliminables === 0
+                  ? 'No hay avisos antiguos para limpiar'
+                  : undefined
+              }
+            >
+              {limpiando ? 'Limpiando…' : 'Limpiar ahora'}
+            </button>
           </div>
-          <button
-            className="btn"
-            onClick={limpiar}
-            disabled={!preview || preview.eliminables === 0 || limpiando}
-            title={
-              preview && preview.eliminables === 0
-                ? 'No hay avisos antiguos para limpiar'
-                : undefined
-            }
-          >
-            {limpiando ? 'Limpiando…' : 'Limpiar ahora'}
-          </button>
         </div>
 
         <div className="modal-pie">
@@ -282,6 +284,233 @@ function Configuracion({
           <button className="btn" onClick={onCerrar}>
             Cerrar
           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CvConfiguracion({ onCerrar }: { onCerrar: () => void }) {
+  const [estado, setEstado] = useState<CvEstado | null>(null)
+  const [texto, setTexto] = useState('')
+  const [guardado, setGuardado] = useState('')
+  const [cargando, setCargando] = useState(true)
+  const [guardando, setGuardando] = useState(false)
+  const [importando, setImportando] = useState(false)
+  const [importado, setImportado] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [ok, setOk] = useState(false)
+  const archivoRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    let activo = true
+    api
+      .obtenerCv()
+      .then((datos) => {
+        if (!activo) return
+        setEstado(datos)
+        setTexto(datos.cv?.contenido ?? '')
+        setGuardado(datos.cv?.contenido ?? '')
+      })
+      .catch((e: Error) => {
+        if (activo) setError(e.message)
+      })
+      .finally(() => {
+        if (activo) setCargando(false)
+      })
+    return () => {
+      activo = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const alTeclear = (evento: KeyboardEvent) => {
+      if (evento.key === 'Escape') onCerrar()
+    }
+    window.addEventListener('keydown', alTeclear)
+    return () => window.removeEventListener('keydown', alTeclear)
+  }, [onCerrar])
+
+  async function guardar() {
+    if (guardando || cargando) return
+    setGuardando(true)
+    setError(null)
+    setOk(false)
+    try {
+      const doc = await api.guardarCv(texto)
+      setGuardado(doc.contenido)
+      setTexto(doc.contenido)
+      setEstado((prev) => (prev ? { ...prev, cv: doc } : prev))
+      setOk(true)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const corto = texto.trim().length < 80
+  const sinCambios = texto.trim() === guardado.trim()
+
+  async function importar(evento: ChangeEvent<HTMLInputElement>) {
+    const archivo = evento.target.files?.[0]
+    evento.target.value = ''
+    if (!archivo || importando) return
+    if (texto.trim() && texto.trim() !== guardado.trim()) {
+      const seguir = window.confirm(
+        'Tenés cambios sin guardar en el CV. Al importar el Word se reemplaza el texto del cuadro.\n\n¿Continuar?',
+      )
+      if (!seguir) return
+    }
+    setImportando(true)
+    setError(null)
+    setOk(false)
+    setImportado(null)
+    try {
+      const resultado = await api.importarCvWord(archivo)
+      setTexto(resultado.contenido)
+      setImportado(resultado.nombre)
+      setEstado((prev) =>
+        prev
+          ? {
+              ...prev,
+              plantilla: {
+                nombre: resultado.nombre,
+                actualizado_at: resultado.actualizado_at,
+              },
+            }
+          : prev,
+      )
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setImportando(false)
+    }
+  }
+
+  return (
+    <div className="modal-fondo" role="presentation" onClick={onCerrar}>
+      <div
+        className="modal modal-cv"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cv-titulo"
+        onClick={(evento) => evento.stopPropagation()}
+      >
+        <div className="modal-head">
+          <div>
+            <h2 id="cv-titulo">Mi CV</h2>
+            <p>Base para adaptar a cada aviso</p>
+          </div>
+          <button className="modal-cerrar" onClick={onCerrar} aria-label="Cerrar Mi CV">
+            ×
+          </button>
+        </div>
+
+        <div className="cv-modal-cuerpo">
+          <div className="cv-modal-estado">
+            {estado?.cv ? (
+              <Chip tono="verde">
+                Guardado · {estado.cv.contenido.length.toLocaleString('es-AR')} caracteres
+              </Chip>
+            ) : (
+              <Chip tono="neutro">{cargando ? 'Cargando…' : 'Sin CV guardado'}</Chip>
+            )}
+            {estado &&
+              (estado.configurado ? (
+                <Chip tono="verde">Gemini conectado</Chip>
+              ) : (
+                <Chip tono="ambar">Falta GEMINI_API_KEY</Chip>
+              ))}
+          </div>
+
+          {estado && !estado.configurado && (
+            <p className="cv-modal-aviso">
+              El CV se puede guardar igual. Para adaptarlo, creá una clave gratuita en{' '}
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">
+                aistudio.google.com/apikey
+              </a>{' '}
+              y agregala al archivo <code>.env</code> como <code>GEMINI_API_KEY</code>.
+            </p>
+          )}
+
+          <div className="cv-modal-plantilla">
+            <div className="cv-modal-plantilla-info">
+              <strong>Plantilla de Word</strong>
+              <span>
+                {estado?.plantilla
+                  ? `${estado.plantilla.nombre} · importada ${fechaRelativa(estado.plantilla.actualizado_at)}`
+                  : 'Opcional: importá tu CV en Word para que la copia adaptada use tu diseño, fuente y márgenes.'}
+              </span>
+            </div>
+            <input
+              ref={archivoRef}
+              type="file"
+              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="cv-modal-archivo"
+              onChange={importar}
+            />
+            <button
+              className="btn"
+              type="button"
+              onClick={() => archivoRef.current?.click()}
+              disabled={cargando || importando}
+            >
+              {importando
+                ? 'Importando…'
+                : estado?.plantilla
+                  ? 'Cambiar Word'
+                  : 'Importar Word'}
+            </button>
+          </div>
+
+          {importado && (
+            <p className="cv-modal-ok">
+              Texto importado de {importado}. Revisalo y guardá el CV; el Word queda como
+              plantilla para la copia adaptada.
+            </p>
+          )}
+
+          <textarea
+            className="cv-modal-texto"
+            value={texto}
+            onChange={(evento) => {
+              setTexto(evento.target.value)
+              setOk(false)
+            }}
+            disabled={cargando}
+            placeholder="Nombre y contacto, experiencia con fechas, educación, skills, idiomas…"
+            aria-label="CV base"
+          />
+
+          <p className="cv-modal-ayuda">
+            Se guarda solo en este equipo. Se envía a Google Gemini únicamente cuando pedís
+            «Adaptar mi CV» en un aviso, después de confirmarlo. El asistente no inventa
+            experiencia, empresas ni fechas: solo reordena y reformula lo que ya está acá.
+          </p>
+
+          {error && <p className="cv-modal-error">{error}</p>}
+        </div>
+
+        <div className="modal-pie">
+          <span>
+            {texto.length.toLocaleString('es-AR')} caracteres
+            {ok ? ' · guardado' : ''}
+            {estado?.cv ? ` · última edición ${fechaRelativa(estado.cv.actualizado_at)}` : ''}
+          </span>
+          <div className="cv-modal-acciones">
+            <button className="btn" onClick={onCerrar}>
+              Cerrar
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={guardar}
+              disabled={cargando || guardando || sinCambios || corto}
+              title={corto ? 'Pegá al menos 80 caracteres de tu CV' : undefined}
+            >
+              {guardando ? 'Guardando…' : 'Guardar CV'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -456,6 +685,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [cargandoLista, setCargandoLista] = useState(true)
   const [configAbierta, setConfigAbierta] = useState(false)
+  const [cvAbierto, setCvAbierto] = useState(false)
+  const [cvRevision, setCvRevision] = useState(0)
   const [logAbierto, setLogAbierto] = useState(false)
 
   const cargarResumen = useCallback(async () => {
@@ -807,6 +1038,14 @@ export default function App() {
           </button>
           <button
             className="btn"
+            onClick={() => setCvAbierto(true)}
+            aria-haspopup="dialog"
+            title="Pegar o editar tu CV base"
+          >
+            Mi CV
+          </button>
+          <button
+            className="btn"
             onClick={() => setConfigAbierta(true)}
             aria-haspopup="dialog"
             title="Activar o desactivar fuentes"
@@ -835,6 +1074,15 @@ export default function App() {
           onCerrar={() => setConfigAbierta(false)}
           onCambiar={cambiarFuente}
           onLimpiar={limpiarAvisos}
+        />
+      )}
+
+      {cvAbierto && (
+        <CvConfiguracion
+          onCerrar={() => {
+            setCvAbierto(false)
+            setCvRevision((valor) => valor + 1)
+          }}
         />
       )}
 
@@ -1179,6 +1427,8 @@ export default function App() {
               onVoto={votar}
               onMotivos={cambiarMotivos}
               resumenFeedback={resumenFeedback}
+              onAbrirCv={() => setCvAbierto(true)}
+              cvRevision={cvRevision}
             />
           )}
         </aside>
@@ -1196,6 +1446,8 @@ function Detalle({
   onVoto,
   onMotivos,
   resumenFeedback,
+  onAbrirCv,
+  cvRevision,
 }: {
   job: Job | JobDetail
   cargando: boolean
@@ -1205,6 +1457,8 @@ function Detalle({
   onVoto: (job: Job, voto: 1 | -1) => void
   onMotivos: (job: Job, motivos: string[]) => void
   resumenFeedback: FeedbackResumen | null
+  onAbrirCv: () => void
+  cvRevision: number
 }) {
   const detallado = 'description' in job ? job : null
   const descripcion = detallado?.description ?? null
@@ -1271,6 +1525,7 @@ function Detalle({
           </div>
         )}
         <Explicacion job={job} />
+        <AsistenteCv job={job} onAbrirCv={onAbrirCv} cvRevision={cvRevision} />
         <Valoracion
           job={job}
           resumen={resumenFeedback}
@@ -1529,5 +1784,254 @@ function EditorNota({ job, onGuardar }: { job: Job | JobDetail; onGuardar: (nota
         Guardar nota
       </button>
     </div>
+  )
+}
+
+function AsistenteCv({
+  job,
+  onAbrirCv,
+  cvRevision,
+}: {
+  job: Job | JobDetail
+  onAbrirCv: () => void
+  cvRevision: number
+}) {
+  const [estado, setEstado] = useState<CvEstado | null>(null)
+  const [versiones, setVersiones] = useState<CvAdaptacion[]>([])
+  const [actual, setActual] = useState<CvAdaptacion | null>(null)
+  const [generando, setGenerando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [mostrarTexto, setMostrarTexto] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+  const [descargandoWord, setDescargandoWord] = useState(false)
+
+  useEffect(() => {
+    let activo = true
+    setActual(null)
+    setVersiones([])
+    setMostrarTexto(false)
+    setError(null)
+    Promise.all([api.obtenerCv(), api.obtenerAdaptacionesCv(job.id)])
+      .then(([estadoCv, historial]) => {
+        if (!activo) return
+        setEstado(estadoCv)
+        setVersiones(historial)
+        setActual(historial[0] ?? null)
+      })
+      .catch(() => undefined)
+    return () => {
+      activo = false
+    }
+  }, [job.id, cvRevision])
+
+  const tieneCv = Boolean(estado?.cv?.contenido?.trim())
+
+  async function generar() {
+    if (generando) return
+    if (!tieneCv) {
+      onAbrirCv()
+      return
+    }
+    if (!window.localStorage.getItem('radar.cv.aceptado')) {
+      const aceptar = window.confirm(
+        'Se van a enviar tu CV y la descripción de este aviso a Google Gemini.\n\n' +
+          'Estás usando el nivel gratuito: Google puede usar ese contenido para ' +
+          'mejorar sus productos. No se envía nada más.\n\n¿Continuar?',
+      )
+      if (!aceptar) return
+      window.localStorage.setItem('radar.cv.aceptado', '1')
+    }
+    setGenerando(true)
+    setError(null)
+    setCopiado(false)
+    try {
+      const resultado = await api.adaptarCv(job.id)
+      setVersiones((prev) => [resultado, ...prev])
+      setActual(resultado)
+      setMostrarTexto(true)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setGenerando(false)
+    }
+  }
+
+  async function copiar() {
+    if (!actual) return
+    try {
+      await navigator.clipboard.writeText(actual.cv)
+      setCopiado(true)
+      window.setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      setError('No se pudo copiar al portapapeles.')
+    }
+  }
+
+  function descargar() {
+    if (!actual) return
+    const base = (job.company_name || job.source_name || 'aviso')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+    const blob = new Blob([actual.cv], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const enlace = document.createElement('a')
+    enlace.href = url
+    enlace.download = `cv-${base || 'aviso'}.md`
+    enlace.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function descargarWord() {
+    if (!actual || descargandoWord) return
+    setDescargandoWord(true)
+    setError(null)
+    try {
+      const { blob, nombre } = await api.descargarCvWord(actual.id)
+      const url = URL.createObjectURL(blob)
+      const enlace = document.createElement('a')
+      enlace.href = url
+      enlace.download = nombre
+      enlace.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setDescargandoWord(false)
+    }
+  }
+
+  async function borrar() {    if (!actual) return
+    try {
+      await api.borrarAdaptacionCv(actual.id)
+      const resto = versiones.filter((v) => v.id !== actual.id)
+      setVersiones(resto)
+      setActual(resto[0] ?? null)
+    } catch (e) {
+      setError((e as Error).message)
+    }
+  }
+
+  const sinClave = estado ? !estado.configurado : false
+
+  return (
+    <section className="asistente-cv" aria-label="CV adaptado al aviso">
+      <div className="asistente-cv-head">
+        <strong>CV para este aviso</strong>
+        {sinClave && <Chip tono="ambar">Falta la clave</Chip>}
+        {actual && (
+          <span className="asistente-cv-meta">
+            {actual.modelo ?? 'Gemini'} · {fechaRelativa(actual.created_at)}
+          </span>
+        )}
+      </div>
+
+      <p className="asistente-cv-ayuda">
+        {sinClave
+          ? 'Agregá GEMINI_API_KEY en el archivo .env para usar el asistente. La clave es gratuita en aistudio.google.com/apikey.'
+          : !tieneCv
+            ? 'Primero guardá tu CV base en Mi CV.'
+            : 'Reordena y reformula tu CV para este aviso. No inventa experiencia: solo trabaja con lo que ya está en tu CV.'}
+      </p>
+
+      <div className="asistente-cv-acciones">
+        <button className="btn" onClick={generar} disabled={generando}>
+          {generando ? 'Adaptando…' : actual ? 'Volver a adaptar' : 'Adaptar mi CV'}
+        </button>
+        {(sinClave || (estado && !tieneCv)) && (
+          <button className="btn" onClick={onAbrirCv}>
+            Abrir Mi CV
+          </button>
+        )}
+        {actual && (
+          <button className="btn" onClick={copiar}>
+            {copiado ? 'Copiado ✓' : 'Copiar'}
+          </button>
+        )}
+        {actual && (
+          <button className="btn" onClick={descargar}>
+            Descargar .md
+          </button>
+        )}
+        {actual && (
+          <button
+            className="btn"
+            onClick={descargarWord}
+            disabled={descargandoWord}
+            title={
+              estado?.plantilla
+                ? `Usa la plantilla ${estado.plantilla.nombre}`
+                : 'Sin plantilla importada: se genera un Word limpio'
+            }
+          >
+            {descargandoWord ? 'Generando…' : 'Descargar Word'}
+          </button>
+        )}
+        {actual && (
+          <button className="btn" onClick={borrar} title="Eliminar esta versión">
+            Borrar
+          </button>
+        )}
+      </div>
+
+      {error && <p className="asistente-cv-error">{error}</p>}
+
+      {actual && (
+        <div className="asistente-cv-resultado">
+          {actual.resumen && <p className="asistente-cv-resumen">{actual.resumen}</p>}
+
+          {actual.cambios.length > 0 && (
+            <div className="asistente-cv-lista">
+              <span>Qué cambió</span>
+              <ul>
+                {actual.cambios.map((cambio, indice) => (
+                  <li key={indice}>{cambio}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {actual.faltantes.length > 0 && (
+            <div className="asistente-cv-lista asistente-cv-faltantes">
+              <span>Falta cubrir</span>
+              <ul>
+                {actual.faltantes.map((falta, indice) => (
+                  <li key={indice}>{falta}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <button
+            className="btn-enlace"
+            onClick={() => setMostrarTexto((valor) => !valor)}
+          >
+            {mostrarTexto ? 'Ocultar CV adaptado' : 'Ver CV adaptado'}
+          </button>
+
+          {mostrarTexto && <pre className="asistente-cv-texto">{actual.cv}</pre>}
+
+          {versiones.length > 1 && (
+            <div className="asistente-cv-versiones">
+              <span>Versiones</span>
+              {versiones.map((version, indice) => (
+                <button
+                  key={version.id}
+                  className={`cv-version ${version.id === actual.id ? 'activo' : ''}`}
+                  onClick={() => {
+                    setActual(version)
+                    setMostrarTexto(true)
+                  }}
+                >
+                  v{versiones.length - indice}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   )
 }

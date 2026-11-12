@@ -56,3 +56,13 @@ class JobUpdate(BaseModel):
 
 class SourceUpdate(BaseModel):
     enabled: bool
+
+
+class CvUpdate(BaseModel):
+    contenido: str
+    profile_id: str = ""
+
+
+class CvAdaptar(BaseModel):
+    job_id: int
+    profile_id: str = ""

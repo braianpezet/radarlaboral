@@ -173,6 +173,14 @@ BUSQUEDAS_JOOBLE = [
 ]
 PAUSA_JOOBLE = 1.5
 
+# Asistente de CV. Usa la Gemini API (Google AI Studio) con una clave propia,
+# distinta de la suscripción de la app Gemini. La clave vive en el .env local.
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+# Vacío = se elige el primer modelo Flash-Lite disponible al consultar la API.
+GEMINI_MODELO = os.environ.get("GEMINI_MODELO", "").strip()
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
+GEMINI_TIMEOUT = 120.0
+
 # Límites de cortesía con los portales.
 PAUSA_ENTRE_BUSQUEDAS = 1.2
 PAUSA_ENTRE_FUENTES = 2.5

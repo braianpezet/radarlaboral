@@ -6,7 +6,7 @@ automáticamente ni envía el CV a ningún sitio.**
 
 El plan completo está en [`PLAN.md`](PLAN.md).
 
-## Estado actual — Fase 1 + Fase A + Fase C + aprendizaje (etapa 1) + configuración + Empresas (ATS) + Jooble
+## Estado actual — Fase 1 + Fase A + Fase C + aprendizaje (etapa 1) + configuración + Empresas (ATS) + Jooble + asistente de CV
 - Backend FastAPI + SQLite con búsqueda de texto completo (FTS5).
 - Conectores de **Computrabajo AR**, **BuscoJobs AR**, **ZonaJobs AR**,
   **Bumeran AR**, **GetOnBoard**, **Empleos IT**, **Empresas (ATS)**,
@@ -31,6 +31,10 @@ El plan completo está en [`PLAN.md`](PLAN.md).
   mano; la app reutiliza esa sesión y consulta la API de avisos.
 - **Feedback de preferencias (etapa 1)**: botones “Me interesa” / “No me
   interesa” por aviso, con motivos, y etiquetas derivadas de los estados.
+- **Asistente de CV (opcional)**: adapta el CV base a cada aviso con la Gemini
+  API, muestra qué cambió y qué falta cubrir, y guarda versiones. Importa tu CV
+  en Word y descarga la copia adaptada con tu propia plantilla. Manual, sin
+  postulaciones automáticas.
 
 ### Perfiles y puntaje
 
@@ -261,11 +265,13 @@ está en `.gitignore`, así que no se comparte ni se sube a ningún lado:
 
 ```
 JOOBLE_API_KEY=<clave del dominio ar.jooble.org>
+GEMINI_API_KEY=<clave gratuita de aistudio.google.com/apikey>
+# GEMINI_MODELO=                # opcional: vacío elige un Flash-Lite disponible
 ```
 
 Las variables del entorno tienen prioridad sobre el archivo. Si borrás una
 clave, la fuente avisa en el registro de escaneos y se puede apagar desde
-Configuración.
+Configuración. La clave de Gemini solo habilita el asistente de CV.
 
 ### Modo desarrollo
 
@@ -309,6 +315,8 @@ radar-laboral/
 │       ├── profiles.py      # perfiles P1–P5 y cálculo del score
 │       ├── scoring.py       # recálculo y persistencia del puntaje
 │       ├── dedupe.py        # agrupación de duplicados entre portales
+│       ├── cv.py            # asistente de CV con la Gemini API
+│       ├── cv_docx.py       # importación y generación de CV en Word
 │       ├── limpieza.py      # retención de 30 días y purga de avisos
 │       ├── logs.py          # registro de eventos de los escaneos
 │       ├── sesiones.py      # estado y apertura de la sesión asistida
@@ -322,6 +330,42 @@ radar-laboral/
 └── PLAN.md
 ```
 
+## Asistente de CV (opcional)
+
+Con una clave gratuita de la **Gemini API** la app puede reescribir tu CV para
+un aviso concreto:
+
+1. Abrí **Mi CV** (botón en la barra superior) y pegá tu CV base, o importá un
+   archivo `.docx` con **Importar Word**. El texto queda en el cuadro para que lo
+   revises antes de guardarlo.
+2. Abrí un aviso y usá **Adaptar mi CV**.
+3. Revisá el resultado, la lista de cambios y lo que falta cubrir; copialo,
+   descargalo como `.md` o como **Word**.
+
+El `.docx` que importás queda guardado como **plantilla**: la copia adaptada
+conserva tu página, márgenes, cabecera (nombre y contacto), fuente y tamaños, y
+vuelca el contenido nuevo respetando el diseño. Si no importás ninguna plantilla,
+la app genera un Word limpio con el mismo contenido. La generación del Word es
+local y no consume la API.
+
+Qué hace y qué no:
+
+- Solo reformula, reordena y resume lo que ya está en tu CV: no inventa
+  experiencia, empresas, títulos ni fechas. Lo que pide el aviso y no tenés
+  aparece aparte en **Falta cubrir**.
+- Es manual, aviso por aviso. La app no postula, no envía el CV a ningún portal
+  y no completa formularios.
+- Guarda las versiones en la base local, para poder volver a una anterior.
+
+La suscripción **Google AI Plus** (o Gemini) **no incluye acceso a la API**: es
+otro producto y se factura aparte. La clave se crea gratis en
+`https://aistudio.google.com/apikey` y se guarda en `.env` como
+`GEMINI_API_KEY`.
+
+Con el nivel gratuito alcanza de sobra (una adaptación ≈ 1 request), pero
+Google puede usar ese contenido para mejorar sus productos. Si eso no te
+conviene, dejá el asistente sin clave: el resto de la app funciona igual.
+
 ## Datos y privacidad
 
 - Todo se guarda en `data/radar.db`, en tu equipo.
@@ -329,7 +373,13 @@ radar-laboral/
   también en tu equipo; se puede borrar esa carpeta para empezar de cero.
 - La clave de Jooble se guarda en `.env`, en tu equipo y fuera de lo que se
   comparte. Solo se usa para consultar la API de Jooble.
-- No se envía el CV ni datos personales a ningún servicio.
+- El CV base, la plantilla `.docx` y las adaptaciones se guardan en
+  `data/radar.db`, en tu equipo.
+- La plantilla solo se usa para generar el Word adaptado en tu equipo; no se
+  envía a Google. Al adaptar solo se envía el texto del CV y la descripción del
+  aviso.
+- No se envía el CV ni datos personales a ningún servicio salvo que uses el
+  asistente de CV (ver abajo), que lo hace a pedido y con confirmación.
 - El conector de LinkedIn está incluido pero **desactivado por defecto**; se
   puede activar desde Configuración, con aviso de ToS y riesgo de bloqueo.
 - Los avisos con más de 30 días se purgan automáticamente, salvo que estén

@@ -6,7 +6,7 @@ compatibilidad.
 
 **No postula, no envía el CV, no inicia sesión en ningún portal.**
 
-- Estado: **Fase C + aprendizaje etapa 1 + panel de fuentes + LinkedIn opcional + limpieza + registro + Empresas (ATS) + Jooble** (2026-11-10)
+- Estado: **Fase C + aprendizaje etapa 1 + panel de fuentes + LinkedIn opcional + limpieza + registro + Empresas (ATS) + Jooble + asistente de CV con Word** (2026-11-12)
 - Fecha: 2026-11-04
 - Ubicación del código: raíz del repositorio
 
@@ -27,6 +27,7 @@ compatibilidad.
 | Avisos nuevos | Solo dentro de la app (badge/contador) |
 | LinkedIn | **Apagado por defecto** (ToS + riesgo de bloqueo de IP) |
 | Perfil "Varios" (P6) | Apagado por defecto |
+| Asistente de CV | Manual y por aviso; usa la Gemini API con clave propia (nivel gratuito). Importa y exporta Word con la plantilla propia. No postula ni envía el CV |
 
 ---
 
@@ -247,15 +248,22 @@ Barra de estado: última actualización, próxima, errores por fuente.
 
 ## 10. Privacidad y legal
 
-- CV y matching nunca salen de la PC.
+- El CV base, la plantilla `.docx` y las adaptaciones se guardan en la base local.
+- La plantilla Word se usa solo para generar la copia adaptada en el equipo; no
+  se envía a Gemini.
+- El matching nunca sale de la PC.
+- El asistente de CV es **opt-in**: solo envía el CV y la descripción del aviso
+  a Google Gemini cuando la persona pide una adaptación, tras confirmarlo la
+  primera vez. Con el nivel gratuito, Google puede usar ese contenido para
+  mejorar sus productos.
 - Scraping: solo lectura, rate limit, User-Agent identificable, respeto de
   `robots.txt`, linkback a la fuente.
 - LinkedIn: **apagado por defecto** por ToS y riesgo de bloqueo de IP.
 - Sin login automatizado, sin captchas, sin reventa de datos.
 - Los desafíos anti-bot se resuelven solo de forma manual (modo asistido); la
   app no usa servicios de captcha, proxies rotativos ni plugins de evasión.
-- Claves API guardadas solo en la base local (`%APPDATA%\RadarLaboral`).
-- Opcional futuro: LLM local (Ollama) para descripciones largas, apagado.
+- Claves API en el archivo `.env` local, fuera del repositorio.
+- Opcional futuro: Ollama local como alternativa al asistente en la nube.
 
 ---
 
@@ -264,6 +272,7 @@ Barra de estado: última actualización, próxima, errores por fuente.
 | Capa | Elección |
 |---|---|
 | Backend | Python 3.14 + FastAPI + httpx async |
+| Word | python-docx (importación y plantilla) |
 | Scraping | selectolax / BeautifulSoup + lxml |
 | Matching | rapidfuzz + diccionario propio de skills |
 | DB | SQLite + FTS5 |
@@ -293,10 +302,11 @@ Se evita PySide6 por compatibilidad con Python 3.14.
 | G | Limpieza automática de avisos con más de 30 días | **Hecho** |
 | H | Registro de escaneos visible en la UI | **Hecho** |
 | I | Boards de empresas con ATS público (Lever/Greenhouse/Ashby) | **Hecho** |
+| J | Asistente de CV por aviso con la Gemini API (opt-in, manual) + importación/exportación Word con plantilla propia | **Hecho** |
 | 2 | Conectores AR: Bumeran, Zonajobs, Clarín | Casi: falta Clarín (sitio caído) |
 | 3 | UI completa: filtros, detalle, estados, exportación | Casi: falta exportación |
 | 4 | Actualización programable, badge, bandeja, `.exe` | Pendiente |
-| 5 | Extras: claves Adzuna/Jooble/Careerjet, LLM local opcional | Opcional |
+| 5 | Extras: claves Adzuna/Careerjet, Ollama local como alternativa | Opcional |
 
 MVP usable (fases 0–3): ~7 días de trabajo efectivo.
 
@@ -330,6 +340,7 @@ MVP usable (fases 0–3): ~7 días de trabajo efectivo.
 | API | Dónde | Cobertura |
 |---|---|---|
 | Jooble | `ar.jooble.org/api/about` (clave por país; llega por mail) | Argentina (la clave de `jooble.org` es solo EE. UU.) |
+| Gemini API | `aistudio.google.com/apikey` (gratis, sin tarjeta) | Asistente de CV. Nivel gratuito: Flash/Flash-Lite. No confundir con la suscripción Google AI Plus, que no incluye API |
 | Careerjet | `careerjet.com/partners/register/as-publisher` (cuenta de publisher; clave por sitio) | Argentina (`es_AR`). API v4 con Basic auth y requiere `user_ip`, `user_agent` y `Referer`; devuelve extracto corto (~120 caracteres) |
 | Adzuna | `developer.adzuna.com` (app_id + app_key inmediatos) | España, México, Brasil (no Argentina) |
 | GetOnBoard | `getonbrd.com/api` (token por contacto) | Tech Latam (el HTML ya funciona sin token) |

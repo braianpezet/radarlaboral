@@ -1,4 +1,8 @@
 import type {
+  CvAdaptacion,
+  CvDocumento,
+  CvEstado,
+  CvImportado,
   FeedbackResumen,
   FeedbackVoto,
   Job,
@@ -142,6 +146,73 @@ export function obtenerLimpiezaPreview() {
 
 export function limpiarAvisos() {
   return pedir<LimpiezaResultado>('/api/cleanup', { method: 'POST' })
+}
+
+export function obtenerCv() {
+  return pedir<CvEstado>('/api/cv')
+}
+
+export function guardarCv(contenido: string, profileId = '') {
+  return pedir<CvDocumento>('/api/cv', {
+    method: 'PUT',
+    body: JSON.stringify({ contenido, profile_id: profileId }),
+  })
+}
+
+async function detalleError(respuesta: Response): Promise<string> {
+  let detalle = `HTTP ${respuesta.status}`
+  try {
+    const cuerpo = await respuesta.json()
+    detalle = cuerpo.detail ?? detalle
+  } catch {
+    /* sin cuerpo */
+  }
+  return detalle
+}
+
+export async function importarCvWord(archivo: File) {
+  const respuesta = await fetch(
+    `/api/cv/plantilla?nombre=${encodeURIComponent(archivo.name)}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      },
+      body: archivo,
+    },
+  )
+  if (!respuesta.ok) throw new Error(await detalleError(respuesta))
+  return respuesta.json() as Promise<CvImportado>
+}
+
+export async function descargarCvWord(adaptacionId: number) {
+  const respuesta = await fetch(`/api/cv/adaptaciones/${adaptacionId}/docx`)
+  if (!respuesta.ok) throw new Error(await detalleError(respuesta))
+  const blob = await respuesta.blob()
+  const disposicion = respuesta.headers.get('Content-Disposition') ?? ''
+  const coincidencia = /filename="?([^";]+)"?/i.exec(disposicion)
+  return {
+    blob,
+    nombre: coincidencia?.[1] ?? `cv-adaptado-${adaptacionId}.docx`,
+  }
+}
+
+export function adaptarCv(jobId: number, profileId = '') {
+  return pedir<CvAdaptacion>('/api/cv/adaptar', {
+    method: 'POST',
+    body: JSON.stringify({ job_id: jobId, profile_id: profileId }),
+  })
+}
+
+export function obtenerAdaptacionesCv(jobId: number) {
+  return pedir<CvAdaptacion[]>(`/api/jobs/${jobId}/cv`)
+}
+
+export function borrarAdaptacionCv(adaptacionId: number) {
+  return pedir<{ eliminados: number }>(`/api/cv/adaptaciones/${adaptacionId}`, {
+    method: 'DELETE',
+  })
 }
 
 export type { JobStatus } from './types'

@@ -192,3 +192,40 @@ export interface LimpiezaResultado {
   corte: string
   restantes: number
 }
+
+export interface CvDocumento {
+  profile_id: string
+  contenido: string
+  actualizado_at: string
+}
+
+export interface CvPlantilla {
+  nombre: string
+  actualizado_at: string
+}
+
+export interface CvImportado {
+  nombre: string
+  contenido: string
+  actualizado_at: string
+}
+
+export interface CvEstado {
+  configurado: boolean
+  modelo: string | null
+  cv: CvDocumento | null
+  plantilla: CvPlantilla | null
+  limite_caracteres: number
+}
+
+export interface CvAdaptacion {
+  id: number
+  job_id: number
+  profile_id: string | null
+  modelo: string | null
+  created_at: string
+  cv: string
+  resumen: string
+  cambios: string[]
+  faltantes: string[]
+}

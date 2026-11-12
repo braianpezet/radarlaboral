@@ -7,19 +7,19 @@ import re
 import sqlite3
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .config import FRONTEND_DIST
 from .connectors import crear_conector
 from .db import conexion, init_db
-from .schemas import FeedbackCreate, JobUpdate, SourceUpdate
+from .schemas import CvAdaptar, CvUpdate, FeedbackCreate, JobUpdate, SourceUpdate
 from .services import ingest
 from .services.dedupe import deduplicar
 from .services.scoring import puntuar_todos, puntuar_uno
-from .services import feedback, limpieza, logs, sesiones
+from .services import cv, feedback, limpieza, logs, sesiones
 from .services.text import (
     detectar_idioma,
     detectar_modalidad,
@@ -28,7 +28,7 @@ from .services.text import (
     limpiar_descripcion,
 )
 
-VERSION = "0.14.0"
+VERSION = "0.16.0"
 _tarea_actual: asyncio.Task | None = None
 
 
@@ -451,6 +451,69 @@ def borrar_feedback(job_id: int):
 def resumen_feedback():
     """Votos y etiquetas disponibles para el futuro aprendizaje del ranking."""
     return feedback.resumen()
+
+
+# --------------------------------------------------------------------------- CV
+@app.get("/api/cv")
+def estado_cv():
+    """CV base guardado y estado de la clave de Gemini."""
+    return cv.estado()
+
+
+@app.post("/api/cv/plantilla")
+async def importar_plantilla_cv(request: Request, nombre: str = ""):
+    """Guarda el .docx como plantilla y devuelve su texto para revisar."""
+    contenido = await request.body()
+    try:
+        return cv.importar_plantilla(nombre, contenido)
+    except cv.CvError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/cv/adaptaciones/{adaptacion_id}/docx")
+def descargar_cv_word(adaptacion_id: int):
+    """Genera el Word adaptado con la plantilla cargada (o una limpia)."""
+    try:
+        contenido, nombre = cv.generar_word(adaptacion_id)
+    except cv.CvError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return Response(
+        content=contenido,
+        media_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "wordprocessingml.document"
+        ),
+        headers={"Content-Disposition": f'attachment; filename="{nombre}"'},
+    )
+
+
+@app.put("/api/cv")
+def guardar_cv(datos: CvUpdate):
+    try:
+        return cv.guardar_documento(datos.contenido, datos.profile_id)
+    except cv.CvError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/cv/adaptar")
+async def adaptar_cv(datos: CvAdaptar):
+    """Genera un CV adaptado al aviso. Requiere GEMINI_API_KEY en .env."""
+    try:
+        return await cv.adaptar(datos.job_id, datos.profile_id)
+    except cv.CvError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/jobs/{job_id}/cv")
+def listar_adaptaciones_cv(job_id: int):
+    return cv.listar_adaptaciones(job_id)
+
+
+@app.delete("/api/cv/adaptaciones/{adaptacion_id}")
+def borrar_adaptacion_cv(adaptacion_id: int):
+    if not cv.borrar_adaptacion(adaptacion_id):
+        raise HTTPException(status_code=404, detail="Adaptación no encontrada")
+    return {"eliminados": 1}
 
 
 @app.get("/api/cleanup/preview")

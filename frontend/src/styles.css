@@ -291,16 +291,29 @@ button {
   color: var(--muted);
 }
 
+.config-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 4px;
+}
+
+.config-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.config-scroll::-webkit-scrollbar-thumb {
+  background: #cfd8e5;
+  border-radius: 8px;
+}
+
 .config-fuentes {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 8px;
   margin: 12px 20px;
   padding: 0;
-  overflow-y: auto;
   list-style: none;
-  min-height: 0;
 }
 
 .config-fuente {
@@ -387,6 +400,158 @@ button {
 
 .config-mantenimiento .btn {
   flex: 0 0 auto;
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+/* ---------------------------------------------------------------- cv modal */
+.modal-cv {
+  width: min(860px, 100%);
+}
+
+.cv-modal-cuerpo {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 20px 16px;
+  overflow-y: auto;
+}
+
+.cv-modal-cuerpo::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cv-modal-cuerpo::-webkit-scrollbar-thumb {
+  background: #cfd8e5;
+  border-radius: 8px;
+}
+
+.cv-modal-estado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cv-modal-aviso {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #f0dfc0;
+  border-radius: 8px;
+  background: var(--ambar-soft);
+  color: var(--ambar);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.cv-modal-aviso a {
+  color: inherit;
+  font-weight: 600;
+}
+
+.cv-modal-aviso code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.65);
+  font-size: 11px;
+}
+
+.cv-modal-plantilla {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #f8fafd;
+}
+
+.cv-modal-plantilla-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cv-modal-plantilla-info strong {
+  font-size: 12px;
+}
+
+.cv-modal-plantilla-info span {
+  overflow: hidden;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--muted);
+  text-overflow: ellipsis;
+}
+
+.cv-modal-plantilla .btn {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+.cv-modal-archivo {
+  display: none;
+}
+
+.cv-modal-ok {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #bfe3d0;
+  border-radius: 8px;
+  background: var(--verde-soft);
+  color: var(--verde);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.cv-modal-texto {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 220px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  font-size: 12.5px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.cv-modal-texto:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-soft);
+}
+
+.cv-modal-texto:disabled {
+  background: #f8fafd;
+  color: var(--muted);
+}
+
+.cv-modal-ayuda {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.cv-modal-error {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--rojo);
+}
+
+.cv-modal-acciones {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.cv-modal-acciones .btn {
   padding: 6px 12px;
   font-size: 12.5px;
 }
@@ -1185,6 +1350,171 @@ button {
   color: #8593a9;
   font-size: 11.5px;
   line-height: 1.4;
+}
+
+/* ---------------------------------------------------------------- asistente cv */
+.asistente-cv {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.asistente-cv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.asistente-cv-head strong {
+  font-size: 12.5px;
+}
+
+.asistente-cv-meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.asistente-cv-ayuda {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.asistente-cv-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.asistente-cv-acciones .btn {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+.asistente-cv-error {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--rojo);
+}
+
+.asistente-cv-resultado {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.asistente-cv-resumen {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #2a3648;
+}
+
+.asistente-cv-lista {
+  font-size: 12px;
+}
+
+.asistente-cv-lista > span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.asistente-cv-lista ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding-left: 17px;
+  line-height: 1.45;
+  color: #2a3648;
+}
+
+.asistente-cv-lista li::marker {
+  color: var(--accent);
+}
+
+.asistente-cv-faltantes > span {
+  color: var(--ambar);
+}
+
+.asistente-cv-faltantes li::marker {
+  color: var(--ambar);
+}
+
+.btn-enlace {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn-enlace:hover {
+  color: var(--accent-hover);
+}
+
+.asistente-cv-texto {
+  margin: 0;
+  padding: 12px 14px;
+  max-height: 340px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fafd;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.asistente-cv-versiones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.cv-version {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cv-version:hover {
+  border-color: #cfd8e5;
+  color: var(--text);
+}
+
+.cv-version.activo {
+  background: var(--accent-soft);
+  border-color: #c7d5f7;
+  color: var(--accent);
 }
 
 /* ---------------------------------------------------------------- chips */

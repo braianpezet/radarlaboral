@@ -113,6 +113,28 @@ CREATE TABLE IF NOT EXISTS settings (
     value TEXT
 );
 
+-- CV base para el asistente ('' = CV general; también admite P1…P5).
+CREATE TABLE IF NOT EXISTS cv_documentos (
+    profile_id     TEXT PRIMARY KEY,
+    contenido      TEXT NOT NULL,
+    actualizado_at TEXT NOT NULL,
+    plantilla         BLOB,                -- .docx original que se usa como plantilla
+    plantilla_nombre  TEXT,
+    plantilla_at      TEXT
+);
+
+-- Adaptaciones generadas por el LLM, una por aviso y versión.
+CREATE TABLE IF NOT EXISTS cv_adaptaciones (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id     INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    profile_id TEXT,
+    modelo     TEXT,
+    resultado  TEXT NOT NULL,              -- JSON: cv, resumen, cambios, faltantes
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_cv_adapt_job ON cv_adaptaciones (job_id, id DESC);
+
 CREATE VIRTUAL TABLE IF NOT EXISTS jobs_fts USING fts5(
     title,
     description,
@@ -181,6 +203,16 @@ def _migrar(conn) -> None:
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_jobs_duplicate ON jobs (duplicate_of)"
     )
+    cv_existentes = {
+        fila["name"] for fila in conn.execute("PRAGMA table_info(cv_documentos)")
+    }
+    for columna, tipo in (
+        ("plantilla", "BLOB"),
+        ("plantilla_nombre", "TEXT"),
+        ("plantilla_at", "TEXT"),
+    ):
+        if columna not in cv_existentes:
+            conn.execute(f"ALTER TABLE cv_documentos ADD COLUMN {columna} {tipo}")
 
 
 @contextmanager
