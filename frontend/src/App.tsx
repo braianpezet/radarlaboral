@@ -6,7 +6,7 @@ import './styles.css'
 import type { CvAdaptacion, CvEstado, FeedbackResumen, Job, JobDetail, JobStatus, LimpiezaPreview, LimpiezaResultado, Profile, Run, RunLog, ScoreDetail, SesionAsistida, Source, Stats } from './types'
 
 const TABS = [
-  { valor: '', etiqueta: 'Todas' },
+  { valor: '', etiqueta: 'Pendientes' },
   { valor: 'nuevo', etiqueta: 'Nuevos' },
   { valor: 'guardado', etiqueta: 'Guardados' },
   { valor: 'postulado', etiqueta: 'Postulados' },
@@ -1325,6 +1325,11 @@ export default function App() {
             key={t.valor}
             className={estado === t.valor ? 'tab activo' : 'tab'}
             onClick={() => setEstado(t.valor)}
+            title={
+              t.valor === ''
+                ? 'Avisos que todavía no viste, descartaste ni marcaste como postulados'
+                : undefined
+            }
           >
             {t.etiqueta}
             {t.valor === '' && <span className="tab-count">{total}</span>}
