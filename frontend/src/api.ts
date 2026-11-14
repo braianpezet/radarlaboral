@@ -208,10 +208,14 @@ export async function descargarCvWord(adaptacionId: number, nombre = '') {
   return { blob, nombre: nombreArchivo }
 }
 
-export function adaptarCv(jobId: number, profileId = '') {
+export function adaptarCv(jobId: number, profileId = '', instrucciones = '') {
   return pedir<CvAdaptacion>('/api/cv/adaptar', {
     method: 'POST',
-    body: JSON.stringify({ job_id: jobId, profile_id: profileId }),
+    body: JSON.stringify({
+      job_id: jobId,
+      profile_id: profileId,
+      instrucciones,
+    }),
   })
 }
 

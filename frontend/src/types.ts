@@ -223,6 +223,7 @@ export interface CvAdaptacion {
   job_id: number
   profile_id: string | null
   modelo: string | null
+  instrucciones: string | null
   created_at: string
   cv: string
   resumen: string

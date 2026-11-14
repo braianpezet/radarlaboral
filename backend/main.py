@@ -100,6 +100,9 @@ def _where(
     if status:
         condiciones.append("j.status = ?")
         params.append(status)
+    else:
+        # Sin filtro de estado: ocultar descartados, postulados y vistos.
+        condiciones.append("j.status NOT IN ('descartado', 'postulado', 'visto')")
     if source:
         condiciones.append("j.source_id = ?")
         params.append(source)
@@ -510,7 +513,9 @@ def guardar_cv(datos: CvUpdate):
 async def adaptar_cv(datos: CvAdaptar):
     """Genera un CV adaptado al aviso. Requiere GEMINI_API_KEY en .env."""
     try:
-        return await cv.adaptar(datos.job_id, datos.profile_id)
+        return await cv.adaptar(
+            datos.job_id, datos.profile_id, datos.instrucciones
+        )
     except cv.CvError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 

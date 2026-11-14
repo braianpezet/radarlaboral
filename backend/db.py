@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS cv_adaptaciones (
     profile_id TEXT,
     modelo     TEXT,
     resultado  TEXT NOT NULL,              -- JSON: cv, resumen, cambios, faltantes
+    instrucciones TEXT,                    -- pedido extra de la persona, si hubo
     created_at TEXT NOT NULL
 );
 
@@ -213,6 +214,11 @@ def _migrar(conn) -> None:
     ):
         if columna not in cv_existentes:
             conn.execute(f"ALTER TABLE cv_documentos ADD COLUMN {columna} {tipo}")
+    adapt_existentes = {
+        fila["name"] for fila in conn.execute("PRAGMA table_info(cv_adaptaciones)")
+    }
+    if "instrucciones" not in adapt_existentes:
+        conn.execute("ALTER TABLE cv_adaptaciones ADD COLUMN instrucciones TEXT")
 
 
 @contextmanager

@@ -66,3 +66,4 @@ class CvUpdate(BaseModel):
 class CvAdaptar(BaseModel):
     job_id: int
     profile_id: str = ""
+    instrucciones: str = ""

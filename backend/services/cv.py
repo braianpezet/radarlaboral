@@ -24,6 +24,7 @@ from ..db import conexion
 from . import cv_docx
 
 MAX_DESCRIPCION = 14000
+MAX_INSTRUCCIONES = 2000
 CLAVE_MODELO = "gemini_modelo"
 
 
@@ -37,6 +38,12 @@ class ModeloNoDisponible(CvError):
 
 def _ahora() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _limpiar_instrucciones(texto: str | None) -> str:
+    """Pedido libre de la persona, en una sola línea y con tope de tamaño."""
+    limpio = re.sub(r"\s+", " ", (texto or "").strip())
+    return limpio[:MAX_INSTRUCCIONES].strip()
 
 
 # --------------------------------------------------------------- documentos
@@ -300,8 +307,19 @@ ESQUEMA_RESPUESTA = {
 }
 
 
-def _prompt(cv: str, job: dict) -> str:
+def _prompt(cv: str, job: dict, instrucciones: str = "") -> str:
     descripcion = (job.get("description") or "").strip()[:MAX_DESCRIPCION]
+    pedido = ""
+    if instrucciones:
+        pedido = f"""
+## Indicaciones de la persona
+{instrucciones}
+
+Aplicá estas indicaciones sobre el CV base: podés cambiar el orden, el énfasis y
+la redacción, y agregar habilidades, herramientas o tareas que la persona nombra
+ahí como propias. No agregues nada más que no esté en el CV base ni en las
+indicaciones.
+"""
     return f"""Adaptá el CV de la persona al siguiente aviso.
 
 ## Aviso
@@ -317,7 +335,7 @@ Descripción:
 
 ## CV base
 {cv}
-
+{pedido}
 ## Formato de salida
 Devolvé un objeto JSON con:
 - "cv": el CV completo adaptado, en texto plano.
@@ -331,7 +349,8 @@ puesto, empresa y fechas del CV base; en "bullets" poné las viñetas reformulad
 - "educacion": lista de líneas de educación, copiadas del CV base.
 - "habilidades": lista de categorías con "etiqueta" (por ejemplo "Back-End") e \
 "items" (tecnologías separadas por coma). Usá solo tecnologías que ya estén en \
-el CV; podés reordenarlas o agruparlas.
+el CV o que la persona haya nombrado en las indicaciones; podés reordenarlas o \
+agruparlas.
 - "idiomas": lista de líneas de idiomas, si el CV las tiene.
 - "otras": solo si el CV tiene otra sección (certificaciones, proyectos, \
 publicaciones). Incluí "titulo" y "lineas".
@@ -463,7 +482,7 @@ async def _generar(modelo: str, prompt: str) -> str:
     return _extraer_texto(respuesta.json())
 
 
-async def adaptar(job_id: int, profile_id: str = "") -> dict:
+async def adaptar(job_id: int, profile_id: str = "", instrucciones: str = "") -> dict:
     if not GEMINI_API_KEY:
         raise CvError(
             "Falta GEMINI_API_KEY en el archivo .env. Se obtiene gratis en "
@@ -492,15 +511,16 @@ async def adaptar(job_id: int, profile_id: str = "") -> dict:
         )
 
     modelo = await elegir_modelo()
+    pedido = _limpiar_instrucciones(instrucciones)
     try:
-        texto = await _generar(modelo, _prompt(documento["contenido"], job))
+        texto = await _generar(modelo, _prompt(documento["contenido"], job, pedido))
     except ModeloNoDisponible:
         # El modelo guardado ya no existe: se elige otro y se reintenta una vez.
         if GEMINI_MODELO:
             raise
         _guardar_modelo("")
         modelo = await elegir_modelo()
-        texto = await _generar(modelo, _prompt(documento["contenido"], job))
+        texto = await _generar(modelo, _prompt(documento["contenido"], job, pedido))
 
     resultado = _parsear_json(texto)
     resultado["modelo"] = modelo
@@ -508,10 +528,18 @@ async def adaptar(job_id: int, profile_id: str = "") -> dict:
     with conexion() as conn:
         cursor = conn.execute(
             """
-            INSERT INTO cv_adaptaciones (job_id, profile_id, modelo, resultado, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO cv_adaptaciones
+                (job_id, profile_id, modelo, resultado, instrucciones, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (job_id, profile_id or None, modelo, json.dumps(resultado, ensure_ascii=False), momento),
+            (
+                job_id,
+                profile_id or None,
+                modelo,
+                json.dumps(resultado, ensure_ascii=False),
+                pedido or None,
+                momento,
+            ),
         )
         adaptacion_id = cursor.lastrowid
     return {
@@ -519,6 +547,7 @@ async def adaptar(job_id: int, profile_id: str = "") -> dict:
         "job_id": job_id,
         "profile_id": profile_id or None,
         "modelo": modelo,
+        "instrucciones": pedido or None,
         "created_at": momento,
         **resultado,
     }
@@ -534,8 +563,8 @@ def _armar(fila) -> dict:
 def listar_adaptaciones(job_id: int) -> list[dict]:
     with conexion() as conn:
         filas = conn.execute(
-            "SELECT id, job_id, profile_id, modelo, resultado, created_at "
-            "FROM cv_adaptaciones WHERE job_id = ? ORDER BY id DESC",
+            "SELECT id, job_id, profile_id, modelo, resultado, instrucciones, "
+            "created_at FROM cv_adaptaciones WHERE job_id = ? ORDER BY id DESC",
             (job_id,),
         ).fetchall()
     return [_armar(f) for f in filas]

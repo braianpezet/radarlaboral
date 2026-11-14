@@ -1819,6 +1819,7 @@ function AsistenteCv({
   const [copiado, setCopiado] = useState(false)
   const [descargandoWord, setDescargandoWord] = useState(false)
   const [nombreArchivo, setNombreArchivo] = useState(() => nombreWordSugerido(job))
+  const [instrucciones, setInstrucciones] = useState('')
 
   useEffect(() => {
     let activo = true
@@ -1841,6 +1842,7 @@ function AsistenteCv({
 
   useEffect(() => {
     setNombreArchivo(nombreWordSugerido(job))
+    setInstrucciones('')
     // Solo al cambiar de aviso: no pisar lo que escribió la persona.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job.id])
@@ -1866,7 +1868,7 @@ function AsistenteCv({
     setError(null)
     setCopiado(false)
     try {
-      const resultado = await api.adaptarCv(job.id)
+      const resultado = await api.adaptarCv(job.id, '', instrucciones)
       setVersiones((prev) => [resultado, ...prev])
       setActual(resultado)
       setMostrarTexto(true)
@@ -1982,6 +1984,24 @@ function AsistenteCv({
         </div>
       )}
 
+      <div className="asistente-cv-instrucciones">
+        <label htmlFor="cv-instrucciones">
+          Indicaciones para esta versión <span>opcional</span>
+        </label>
+        <textarea
+          id="cv-instrucciones"
+          rows={2}
+          maxLength={2000}
+          value={instrucciones}
+          onChange={(evento) => setInstrucciones(evento.target.value)}
+          placeholder="Por ejemplo: destacá SQL y Active Directory, y acortá el perfil."
+        />
+        <p>
+          Se envía junto con el CV y el aviso. Sirve para ordenar, recortar o
+          sumar lo que ya sabés hacer; no inventa experiencia.
+        </p>
+      </div>
+
       <div className="asistente-cv-acciones">
         <button className="btn" onClick={generar} disabled={generando}>
           {generando ? 'Adaptando…' : actual ? 'Volver a adaptar' : 'Adaptar mi CV'}
@@ -2066,6 +2086,7 @@ function AsistenteCv({
                 <button
                   key={version.id}
                   className={`cv-version ${version.id === actual.id ? 'activo' : ''}`}
+                  title={version.instrucciones || 'Sin indicaciones extra'}
                   onClick={() => {
                     setActual(version)
                     setMostrarTexto(true)
