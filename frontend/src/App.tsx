@@ -10,6 +10,7 @@ const TABS = [
   { valor: 'nuevo', etiqueta: 'Nuevos' },
   { valor: 'guardado', etiqueta: 'Guardados' },
   { valor: 'postulado', etiqueta: 'Postulados' },
+  { valor: 'visto', etiqueta: 'Vistos' },
   { valor: 'descartado', etiqueta: 'Descartados' },
 ]
 
@@ -1324,7 +1325,11 @@ export default function App() {
           <button
             key={t.valor}
             className={estado === t.valor ? 'tab activo' : 'tab'}
-            onClick={() => setEstado(t.valor)}
+            onClick={() => {
+              setEstado(t.valor)
+              // Un estado concreto se mira sobre todos los puntajes.
+              setVista('todos')
+            }}
             title={
               t.valor === ''
                 ? 'Avisos que todavía no viste, descartaste ni marcaste como postulados'
