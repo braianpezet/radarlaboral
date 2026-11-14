@@ -676,6 +676,7 @@ export default function App() {
   const [modalidad, setModalidad] = useState('')
   const [seniority, setSeniority] = useState('')
   const [idioma, setIdioma] = useState('')
+  const [zona, setZona] = useState('')
   const [puntajeMin, setPuntajeMin] = useState('')
   const [orden, setOrden] = useState('score-desc')
   const [seleccionado, setSeleccionado] = useState<Job | null>(null)
@@ -736,6 +737,7 @@ export default function App() {
         modality: modalidad,
         seniority,
         language: idioma,
+        zone: zona,
         minScore: puntajeMin ? Number(puntajeMin) : undefined,
         sort,
         order,
@@ -747,7 +749,7 @@ export default function App() {
     } finally {
       setCargandoLista(false)
     }
-  }, [q, fuente, estado, vista, perfil, modalidad, seniority, idioma, puntajeMin, orden])
+  }, [q, fuente, estado, vista, perfil, modalidad, seniority, idioma, zona, puntajeMin, orden])
 
   useEffect(() => {
     cargarResumen()
@@ -774,6 +776,18 @@ export default function App() {
     const t = window.setTimeout(cargarJobs, 250)
     return () => window.clearTimeout(t)
   }, [cargarJobs])
+
+  useEffect(() => {
+    if (!seleccionado) return
+    const alPresionar = (evento: KeyboardEvent) => {
+      if (evento.key === 'Escape') {
+        setSeleccionado(null)
+        setDetalle(null)
+      }
+    }
+    window.addEventListener('keydown', alPresionar)
+    return () => window.removeEventListener('keydown', alPresionar)
+  }, [seleccionado])
 
   useEffect(() => {
     if (!error) return
@@ -977,10 +991,10 @@ export default function App() {
         : 'Sin actualizaciones todavía'
 
   const hayFiltros = Boolean(
-    q || fuente || estado || perfil || modalidad || seniority || idioma || puntajeMin || vista === 'hoy',
+    q || fuente || estado || perfil || modalidad || seniority || idioma || zona || puntajeMin || vista === 'hoy',
   )
   const hayFiltrosManuales = Boolean(
-    q || fuente || estado || perfil || modalidad || seniority || idioma || puntajeMin,
+    q || fuente || estado || perfil || modalidad || seniority || idioma || zona || puntajeMin,
   )
 
   function limpiarFiltros() {
@@ -991,6 +1005,7 @@ export default function App() {
     setModalidad('')
     setSeniority('')
     setIdioma('')
+    setZona('')
     setPuntajeMin('')
   }
 
@@ -1237,11 +1252,22 @@ export default function App() {
           </select>
         </label>
         <label className="filtro">
+          <span>Zona</span>
+          <select value={zona} onChange={(e) => setZona(e.target.value)}>
+            <option value="">Todas</option>
+            <option value="caba">CABA / GBA</option>
+            <option value="argentina">Resto de Argentina</option>
+            <option value="remoto_ar">Remoto Argentina</option>
+            <option value="remoto_latam">Remoto LATAM</option>
+            <option value="remoto_global">Remoto global</option>
+          </select>
+        </label>
+        <label className="filtro">
           <span>Idioma</span>
           <select value={idioma} onChange={(e) => setIdioma(e.target.value)}>
             <option value="">Todos</option>
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
+            <option value="es">Solo español</option>
+            <option value="en">Solo inglés</option>
           </select>
         </label>
         <label className="filtro">
@@ -1275,14 +1301,20 @@ export default function App() {
         <div className="vistas">
           <button
             className={vista === 'hoy' ? 'vista activo' : 'vista'}
-            onClick={() => setVista('hoy')}
+            onClick={() => {
+              setVista('hoy')
+              setEstado('')
+            }}
             title="Avisos con puntaje 70 o más"
           >
             Hoy <span className="tab-count">{stats?.hoy ?? 0}</span>
           </button>
           <button
             className={vista === 'todos' ? 'vista activo' : 'vista'}
-            onClick={() => setVista('todos')}
+            onClick={() => {
+              setVista('todos')
+              setEstado('')
+            }}
           >
             Todos
           </button>

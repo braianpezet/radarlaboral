@@ -16,11 +16,14 @@ El plan completo está en [`PLAN.md`](PLAN.md).
 - **Vista “Hoy”** con los avisos que superan el umbral (70), ordenables por
   **puntaje** o por **fecha** (ascendente o descendente).
 - **Deduplicación entre portales**: una tarjeta por aviso, ocultando repetidos.
-- Filtros por perfil, fuente, modalidad, seniority, idioma, puntaje mínimo y
-  estado, además de la búsqueda por texto.
+- Filtros por perfil, fuente, zona (CABA/GBA, resto de Argentina, remoto
+  Argentina, remoto LATAM y remoto global), modalidad, seniority, idioma,
+  puntaje mínimo y estado, además de la búsqueda por texto.
 - Ventana nativa con pywebview.
-- Interfaz React: lista, búsqueda, filtros, detalle con “por qué matchea” y
-  estados (nuevo / visto / guardado / descartado / postulado) con notas.
+- Interfaz React: lista, búsqueda, filtros y detalle en **panel lateral
+  superpuesto** que no achica la lista, con “por qué matchea” y estados
+  (nuevo / visto / guardado / descartado / postulado) con notas. `Esc` cierra
+  el panel.
 - Actualización manual con progreso en vivo.
 - **Panel de configuración**: activa o desactiva fuentes para las próximas
   actualizaciones, con estado, confiabilidad y última corrida de cada una.

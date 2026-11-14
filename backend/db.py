@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     currency       TEXT,
     period         TEXT,
     language       TEXT,
+    zone           TEXT,                -- caba | remoto_ar | remoto_latam | remoto_global
     published_at   TEXT,
     fetched_at     TEXT NOT NULL,
     fingerprint    TEXT,
@@ -191,6 +192,7 @@ COLUMNAS_NUEVAS = {
     "score_detail": "TEXT",
     "duplicate_of": "INTEGER",
     "excluded": "INTEGER DEFAULT 0",
+    "zone": "TEXT",
 }
 
 
@@ -219,6 +221,23 @@ def _migrar(conn) -> None:
     }
     if "instrucciones" not in adapt_existentes:
         conn.execute("ALTER TABLE cv_adaptaciones ADD COLUMN instrucciones TEXT")
+    # Zona para el filtro de la lista. Se recalcula una vez por versión de la
+    # regla y después la mantiene la ingesta.
+    from .services.text import clave_zona
+
+    marca = conn.execute(
+        "SELECT value FROM settings WHERE key = 'zonas_version'"
+    ).fetchone()
+    if not marca or marca["value"] != "2":
+        for fila in conn.execute("SELECT id, location, modality FROM jobs").fetchall():
+            conn.execute(
+                "UPDATE jobs SET zone = ? WHERE id = ?",
+                (clave_zona(fila["location"], fila["modality"]), fila["id"]),
+            )
+        conn.execute(
+            "INSERT INTO settings (key, value) VALUES ('zonas_version', '2') "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+        )
 
 
 @contextmanager

@@ -31,7 +31,7 @@ from .services.text import (
     limpiar_descripcion,
 )
 
-VERSION = "0.17.0"
+VERSION = "0.18.0"
 _tarea_actual: asyncio.Task | None = None
 
 
@@ -69,6 +69,7 @@ def _consulta_fts(texto: str) -> str | None:
 MODALIDADES = {"remoto", "hibrido", "presencial"}
 SENIORITIES = {"trainee", "junior", "semi-senior", "senior"}
 IDIOMAS = {"es", "en"}
+ZONAS = {"caba", "argentina", "remoto_ar", "remoto_latam", "remoto_global"}
 
 ORDENES = {
     ("score", "desc"): "j.score IS NULL, j.score DESC, j.published_at DESC, j.id DESC",
@@ -87,6 +88,7 @@ def _where(
     modality: str = "",
     seniority: str = "",
     language: str = "",
+    zone: str = "",
     min_score: int | None = None,
 ) -> tuple[str, list]:
     # Los duplicados y los avisos fuera de perfil no se muestran en la lista.
@@ -115,6 +117,9 @@ def _where(
     if language in IDIOMAS:
         condiciones.append("j.language = ?")
         params.append(language)
+    if zone in ZONAS:
+        condiciones.append("j.zone = ?")
+        params.append(zone)
     if min_score is not None:
         condiciones.append("j.score >= ?")
         params.append(min_score)
@@ -256,6 +261,7 @@ def listar_jobs(
     modality: str = "",
     seniority: str = "",
     language: str = "",
+    zone: str = "",
     min_score: int | None = None,
     sort: str = "score",
     order: str = "desc",
@@ -271,7 +277,7 @@ def listar_jobs(
     if order not in {"asc", "desc"}:
         order = "desc"
     where, params = _where(
-        q, source, status, view, profile, modality, seniority, language, min_score
+        q, source, status, view, profile, modality, seniority, language, zone, min_score
     )
     fts = _consulta_fts(q) if q else None
 
@@ -307,7 +313,7 @@ def listar_jobs(
     except sqlite3.OperationalError:
         # Si la consulta FTS falla, se cae a búsqueda simple por LIKE.
         where, params = _where(
-            "", source, status, view, profile, modality, seniority, language, min_score
+            "", source, status, view, profile, modality, seniority, language, zone, min_score
         )
         if q:
             cond = "(j.title LIKE ? OR j.company_name LIKE ? OR j.description LIKE ?)"

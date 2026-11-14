@@ -15,6 +15,7 @@ from ..connectors.base import FuenteBloqueada, JobRaw, SesionAsistidaRequerida
 from ..db import conexion
 from .text import (
     ahora_utc,
+    clave_zona,
     detectar_idioma,
     detectar_modalidad,
     detectar_seniority,
@@ -78,6 +79,7 @@ def _guardar(conn, oferta: JobRaw, ahora) -> bool:
     fecha = parsear_fecha(oferta.published_text, ahora)
     empresa_id = _empresa(conn, oferta.company)
     fingerprint = huella(oferta.title, oferta.company, oferta.location)
+    zona = clave_zona(oferta.location, modalidad)
 
     existente = conn.execute(
         "SELECT id FROM jobs WHERE source_id = ? AND external_id = ?",
@@ -98,6 +100,7 @@ def _guardar(conn, oferta: JobRaw, ahora) -> bool:
                 period        = COALESCE(?, period),
                 language      = ?,
                 modality      = COALESCE(?, modality),
+                zone          = ?,
                 seniority     = COALESCE(?, seniority),
                 contract_type = COALESCE(?, contract_type),
                 published_at  = COALESCE(?, published_at),
@@ -120,6 +123,7 @@ def _guardar(conn, oferta: JobRaw, ahora) -> bool:
                 salario.get("periodo"),
                 detectar_idioma(texto),
                 modalidad,
+                zona,
                 detectar_seniority(texto),
                 oferta.contract_type,
                 iso(fecha),
@@ -149,10 +153,10 @@ def _guardar(conn, oferta: JobRaw, ahora) -> bool:
         """
         INSERT INTO jobs (
             source_id, external_id, url, title, company_id, company_name,
-            description, summary, location, modality, seniority, contract_type,
+            description, summary, location, modality, zone, seniority, contract_type,
             salary_text, salary_min, salary_max, currency, period,
             language, published_at, fetched_at, fingerprint, content_hash
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             oferta.source_id,
@@ -165,6 +169,7 @@ def _guardar(conn, oferta: JobRaw, ahora) -> bool:
             oferta.summary,
             oferta.location,
             modalidad,
+            zona,
             detectar_seniority(texto),
             oferta.contract_type,
             oferta.salary_text,

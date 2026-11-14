@@ -142,6 +142,33 @@ def clasificar_zona(
     return 0, "Otra ubicación"
 
 
+def clave_zona(
+    ubicacion: str | list | tuple | None, modalidad: str | None
+) -> str:
+    """Zona resumida que se guarda y usa para filtrar la lista."""
+    puntos, etiqueta = clasificar_zona(ubicacion, modalidad)
+    if etiqueta == "Remoto Argentina":
+        return "remoto_ar"
+    if etiqueta == "Remoto LatAm":
+        return "remoto_latam"
+    if etiqueta in ("Remoto global", "Remoto"):
+        return "remoto_global"
+    if etiqueta == "Argentina":
+        if isinstance(ubicacion, (list, tuple)):
+            texto = ", ".join(str(x) for x in ubicacion if x)
+        else:
+            texto = str(ubicacion or "")
+        t = normalizar(texto)
+        if "fuera de gba" in t:
+            return "argentina"
+        if re.search(r"\b(caba|capital federal|gba|gran buenos aires)\b", t):
+            return "caba"
+        if "buenos aires" in t:
+            return "caba"
+        return "argentina"
+    return ""
+
+
 def html_a_texto(html: str | None) -> str | None:
     """Convierte el HTML de una descripción en texto legible."""
     if not html:

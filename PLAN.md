@@ -224,11 +224,11 @@ Estados manuales: `nuevo`, `visto`, `guardado`, `descartado`, `postulado`.
 1. **Hoy** — avisos con score ≥ 70, con filtro por perfil: pantalla principal
    (**implementada**).
 2. **Lista / búsqueda** — filtros por perfil, fuente, estado, modalidad,
-   seniority, idioma y puntaje mínimo, más texto libre; orden por puntaje o
-   fecha en ambos sentidos (**implementada**).
-3. **Detalle** — descripción completa, "por qué matchea", gaps y acciones
-   (abrir original, guardar, descartar, marcar postulado, nota, votar con
-   motivos) (**implementado**).
+   seniority, idioma, zona y puntaje mínimo, más texto libre; orden por puntaje
+   o fecha en ambos sentidos (**implementada**).
+3. **Detalle** — panel lateral superpuesto, sin achicar la lista: descripción
+   completa, "por qué matchea", gaps y acciones (abrir original, guardar,
+   descartar, marcar postulado, nota, votar con motivos) (**implementado**).
 4. **Postulaciones** — tablero de lo marcado, con fecha y nota.
 5. **Configuración** — fuentes on/off (**implementado**); perfiles y pesos,
    claves, intervalo y exportación quedan pendientes.

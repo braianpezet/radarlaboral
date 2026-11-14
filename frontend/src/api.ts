@@ -46,6 +46,7 @@ export interface FiltrosJobs {
   modality?: string
   seniority?: string
   language?: string
+  zone?: string
   minScore?: number
   sort?: 'score' | 'date'
   order?: 'asc' | 'desc'
@@ -63,6 +64,7 @@ export function listarJobs(filtros: FiltrosJobs) {
   if (filtros.modality) qs.set('modality', filtros.modality)
   if (filtros.seniority) qs.set('seniority', filtros.seniority)
   if (filtros.language) qs.set('language', filtros.language)
+  if (filtros.zone) qs.set('zone', filtros.zone)
   if (filtros.minScore != null) qs.set('min_score', String(filtros.minScore))
   qs.set('sort', filtros.sort ?? 'score')
   qs.set('order', filtros.order ?? 'desc')

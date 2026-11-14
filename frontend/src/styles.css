@@ -1140,7 +1140,7 @@ button {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(520px, 40vw, 680px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   padding: 0 24px 24px;
 }
@@ -1740,11 +1740,24 @@ button {
 
 /* ---------------------------------------------------------------- detalle */
 .detalle {
+  display: none;
   min-height: 0;
   overflow: hidden;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 14px;
+}
+
+.detalle.visible {
+  display: block;
+  position: fixed;
+  top: 68px;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  width: min(760px, calc(100vw - 32px));
+  border-radius: 14px 0 0 0;
+  box-shadow: -12px 0 40px rgba(22, 32, 46, 0.18);
 }
 
 .detalle-panel {
@@ -2074,28 +2087,15 @@ button {
 
 /* ---------------------------------------------------------------- responsive */
 @media (max-width: 1120px) {
-  .workspace {
-    grid-template-columns: 1fr;
-  }
-
-  .detalle {
-    display: none;
-  }
-
   .detalle.visible {
-    display: block;
-    position: fixed;
-    top: 68px;
-    right: 0;
-    bottom: 0;
-    z-index: 30;
-    width: min(560px, 100%);
-    border-radius: 14px 0 0 0;
-    box-shadow: -12px 0 40px rgba(22, 32, 46, 0.18);
+    width: min(680px, calc(100vw - 24px));
   }
 }
 
 @media (max-width: 820px) {
+  .detalle.visible {
+    width: 100vw;
+  }
   .stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
