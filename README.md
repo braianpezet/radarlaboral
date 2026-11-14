@@ -162,6 +162,10 @@ antes de abrir la otra** y cerrarla antes de volver a actualizar.
 Como los dos portales publican el mismo catálogo, la deduplicación deja **una
 sola tarjeta por aviso**; puede aparecer bajo Bumeran o bajo ZonaJobs.
 
+Los avisos que ya viste, descartaste o marcaste como postulados **no vuelven a
+entrar** en una actualización, aunque el portal los republique con otro
+identificador: se comparan por título, empresa y ubicación.
+
 Advertencia: reutilizar una sesión y consultar la API desde la ventana del
 portal puede contravenir los términos de uso del sitio. Es una decisión del
 usuario, con bajo volumen de consultas y sin automatizar postulaciones.

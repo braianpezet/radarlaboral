@@ -130,6 +130,21 @@ def _guardar(conn, oferta: JobRaw, ahora) -> bool:
         )
         return False
 
+    # Un aviso ya visto, descartado o postulado no vuelve a entrar aunque el
+    # portal lo publique con otro identificador.
+    repetido = conn.execute(
+        """
+        SELECT 1 FROM jobs
+        WHERE fingerprint = ?
+          AND COALESCE(company_name, '') = COALESCE(?, '')
+          AND status IN ('visto', 'descartado', 'postulado')
+        LIMIT 1
+        """,
+        (fingerprint, oferta.company),
+    ).fetchone()
+    if repetido:
+        return False
+
     conn.execute(
         """
         INSERT INTO jobs (
